@@ -1,0 +1,80 @@
+apply plugin: "groovy"
+apply plugin: "spring-boot"
+apply plugin: "application"
+apply plugin: "war"
+
+sourceCompatibility = "1.8"
+targetCompatibility = "1.8"
+
+version = "${version}"
+group = "${group}"
+mainClassName = "sample.SampleApplication"
+
+buildscript {
+    ext {
+        springBootVersion = '1.2.1.RELEASE'
+    }    
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.netflix.nebula:gradle-ospackage-plugin:2.0.2'
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
+}
+
+bootRepackage {
+    mainClass = 'com.elevenware.sandbox.sb.Boot'
+}
+
+war {
+    baseName = 'sb2'
+    version =  '0.1'
+}
+
+jar {
+    baseName = 'spring-boot-sample-actuator'
+    version =  '1.0.0'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile "org.codehaus.groovy:groovy"
+    compile "org.springframework.boot:spring-boot-starter-web"
+    compile "org.springframework.boot:spring-boot-starter-actuator"
+    providedRuntime("org.springframework.boot:spring-boot-starter-tomcat")
+    testCompile "org.springframework.boot:spring-boot-starter-test"
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.2.1'
+}
+
+apply plugin: 'rpm'
+
+task createRpm(type: Rpm, dependsOn: ['clean', 'bootRepackage', 'war']) {
+    packageName 'sb2'
+    version '0.1'
+    release '1'
+    os LINUX
+    requires("java-1.8.0-openjdk-devel")
+    arch 'noarch'
+
+    into '/opt/foo'
+
+    from(war.outputs.files) {
+        into ''
+    }
+    
+    from('dist/start') {
+        into '/etc/init.d'
+        fileMode 0700
+    }
+
+    preInstall file('dist/rpm/preInstall.sh')
+    postInstall file('dist/rpm/postInstall.sh')
+
+}

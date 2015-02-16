@@ -1,0 +1,4 @@
+.vagrant
+.gradle/
+build
+sb2.iml

@@ -1,0 +1,1 @@
+mkdir -p /var/log/sb2-0.1/
